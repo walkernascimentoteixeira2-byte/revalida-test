@@ -1,0 +1,72 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Core user settings and gamification state.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "points": { "type": "number" },
+        "gamification": { "type": "object" },
+        "notifications": { "type": "array" },
+        "mailbox": { "type": "array" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "email", "points", "gamification"]
+    },
+    "TestResult": {
+      "title": "Test Result",
+      "description": "Record of a completed quiz session.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "date": { "type": "string" },
+        "theme": { "type": "string" },
+        "questions": { "type": "array" },
+        "userAnswers": { "type": "array" },
+        "revealedAnswers": { "type": "array" },
+        "categoryPerformance": { "type": "array" },
+        "pointsEarned": { "type": "number" },
+        "scoreBefore": { "type": "number" },
+        "scoreAfter": { "type": "number" },
+        "difficultyMode": { "type": "string" },
+        "facilitiesUsed": { "type": "object" },
+        "auxiliaryMarkers": { "type": "array" },
+        "contestedQuestions": { "type": "array" }
+      },
+      "required": ["id", "date", "theme", "questions", "userAnswers"]
+    },
+    "ErrorEntry": {
+      "title": "Error Log Entry",
+      "description": "Question the user got wrong.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "question": { "type": "object" },
+        "userAnswer": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "personalObservation": { "type": "string" },
+        "isRevised": { "type": "boolean" }
+      },
+      "required": ["id", "question", "userAnswer", "timestamp", "isRevised"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile data."
+    },
+    "/users/{userId}/history/{testId}": {
+      "schema": "TestResult",
+      "description": "User's past test results."
+    },
+    "/users/{userId}/errors/{errorId}": {
+      "schema": "ErrorEntry",
+      "description": "User's error log."
+    }
+  }
+}

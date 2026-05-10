@@ -1,0 +1,10 @@
+{
+  "name": "Remix: RevalidaQuiz Pro",
+  "description": "Plataforma avançada de simulados médicos para o Revalida com gamificação e feedback detalhado.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "AI-powered question generation",
+    "Progress tracking",
+    "Gamified learning"
+  ]
+}

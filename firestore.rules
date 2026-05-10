@@ -1,0 +1,73 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+       return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    match /users/{userId} {
+      function isValidUser(data) {
+        return data.keys().hasAll(['userId', 'email', 'points', 'gamification'])
+          && data.userId == request.auth.uid
+          && data.email is string && data.email.size() <= 256
+          && data.points is int
+          && data.gamification is map
+          && (data.get('notifications', []) is list)
+          && (data.get('mailbox', []) is list)
+          && (data.get('displayName', '') is string)
+          && (data.get('photoURL', '') is string);
+      }
+
+      allow get: if isOwner(userId) && isValidId(userId);
+      allow create: if isOwner(userId) && isValidId(userId) 
+        && isValidUser(request.resource.data) 
+        && request.resource.data.get('createdAt', null) == request.time;
+      allow update: if isOwner(userId) && isValidId(userId) 
+        && isValidUser(request.resource.data) 
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.get('updatedAt', null) == request.time;
+    }
+
+    match /users/{userId}/history/{testId} {
+      function isValidTest(data) {
+        return data.keys().hasAll(['id', 'date', 'theme', 'questions', 'userAnswers'])
+          && data.id is string && data.id.size() <= 128
+          && data.date is string
+          && data.theme is string
+          && data.questions is list
+          && data.userAnswers is list;
+      }
+      allow list: if isOwner(userId) && isValidId(userId);
+      allow get: if isOwner(userId) && isValidId(userId) && isValidId(testId);
+      allow create: if isOwner(userId) && isValidId(userId) && isValidId(testId) && isValidTest(request.resource.data);
+      allow delete: if isOwner(userId) && isValidId(userId) && isValidId(testId);
+    }
+
+    match /users/{userId}/errors/{errorId} {
+      function isValidError(data) {
+        return data.keys().hasAll(['id', 'question', 'userAnswer', 'timestamp', 'isRevised'])
+          && data.id is string
+          && data.question is map
+          && data.timestamp is string
+          && data.isRevised is bool;
+      }
+      allow list: if isOwner(userId) && isValidId(userId);
+      allow get: if isOwner(userId) && isValidId(userId) && isValidId(errorId);
+      allow create: if isOwner(userId) && isValidId(userId) && isValidId(errorId) && isValidError(request.resource.data);
+      allow update: if isOwner(userId) && isValidId(userId) && isValidId(errorId) && isValidError(request.resource.data);
+      allow delete: if isOwner(userId) && isValidId(userId) && isValidId(errorId);
+    }
+  }
+}
